@@ -1,0 +1,4 @@
+[RDP]
+tls-key={{ [gnome_remote_desktop_rdp_tls_path, gnome_remote_desktop_rdp_tls_file_name] | ansible.builtin.path_join }}.key
+tls-cert={{ [gnome_remote_desktop_rdp_tls_path, gnome_remote_desktop_rdp_tls_file_name] | ansible.builtin.path_join }}.crt
+enabled=true

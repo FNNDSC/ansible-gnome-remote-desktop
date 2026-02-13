@@ -1,0 +1,103 @@
+---
+- name: Check unsupported distro
+  when:
+    - ansible_distribution != "Ubuntu"
+    - ansible_distribution_version != "24.04"
+  ansible.builtin.fail:
+    msg: "Unsupported distro: {{ ansible_distribution }} (only Ubuntu 24.04 is supported)"
+- name: Check display manager configuration
+  block:
+    - name: Read /etc/X11/default-display-manager
+      ansible.builtin.slurp:
+        src: /etc/X11/default-display-manager
+      register: grd_default_display_manager
+    - name: Check that the configured display manager is GDM
+      ansible.builtin.assert:
+        that:
+          - "display_manager_bin == '/usr/sbin/gdm3'"
+      vars:
+        display_manager_bin: "{{ (grd_default_display_manager.content | b64decode).strip() }}"
+
+- name: Install gnome-remote-desktop
+  ansible.builtin.apt:
+    name: gnome-remote-desktop
+    state: present
+    cache_valid_time: 604800 # 1 week
+  notify: Restart gnome-remote-desktop.service
+
+- name: Configure RDP TLS
+  block:
+    - name: Read existing TLS certificate
+      become: true
+      become_user: gnome-remote-desktop
+      ansible.builtin.command:
+        argv:
+          - openssl
+          - x509
+          - -noout
+          - -subject
+          - -nameopt
+          - multiline
+          - -in
+          - "{{ [gnome_remote_desktop_rdp_tls_path, gnome_remote_desktop_rdp_tls_file_name] | ansible.builtin.path_join }}.crt"
+      register: grd_tls_preexisting_openssl
+      changed_when: false
+      failed_when: false
+    - name: Decide whether to generate TLS certificate
+      ansible.builtin.set_fact:
+        grd_should_generate_tls: "{{ not file_is_valid or not cn_is_correct }}"
+      vars:
+        file_is_valid: "{{ grd_tls_preexisting_openssl.rc == 0 }}"
+        cn_is_correct: "{{ grd_tls_preexisting_openssl.stdout.find(' = ' ~ ansible_fqdn ~ gnome_remote_desktop_fqdn_suffix) > 0 }}"
+    - name: Generate TLS certificates
+      when: grd_should_generate_tls
+      block:
+        - name: Install winpr-utils
+          ansible.builtin.apt:
+            name: winpr-utils
+            state: present
+        - name: Run winpr-makecert
+          become: true
+          become_user: gnome-remote-desktop
+          ansible.builtin.command:
+            argv:
+              - winpr-makecert
+              - -rdp
+              - -n
+              - "{{ ansible_fqdn }}{{ gnome_remote_desktop_fqdn_suffix }}"
+              - -path
+              - /var/lib/gnome-remote-desktop
+              - rdp-tls
+          changed_when: true
+          notify: Restart gnome-remote-desktop.service
+
+- name: Create configuration directory
+  ansible.builtin.file:
+    path: /var/lib/gnome-remote-desktop/.local/share/gnome-remote-desktop
+    state: directory
+    owner: gnome-remote-desktop
+    group: gnome-remote-desktop
+    mode: "0755"
+
+# Has same effect as: grdctl rdp set-credentials
+- name: Set RDP credentials
+  when:
+    - gnome_remote_desktop_rdp_username != ""
+    - gnome_remote_desktop_rdp_password != ""
+  ansible.builtin.template:
+    src: credentials.ini.j2
+    dest: /var/lib/gnome-remote-desktop/.local/share/gnome-remote-desktop/credentials.ini
+    owner: gnome-remote-desktop
+    group: gnome-remote-desktop
+    mode: "0600"
+  notify: Restart gnome-remote-desktop.service
+
+# Has same effect as: grdctl rdp [enable|set-tls-cert|set-tls-key]
+- name: Configure gnome-remote-desktop system RDP
+  ansible.builtin.template:
+    src: grd.conf.j2
+    dest: /etc/gnome-remote-desktop/grd.conf
+    owner: gnome-remote-desktop
+    group: gnome-remote-desktop
+    mode: "0664"
+  notify: Restart gnome-remote-desktop.service

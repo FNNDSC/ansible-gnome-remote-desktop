@@ -1,0 +1,17 @@
+---
+
+# Whether to enable GNOME Remote Desktop feature with RDP
+gnome_remote_desktop_rdp_enabled: true
+
+# (Required, once) RDP username
+gnome_remote_desktop_rdp_username: ""
+# (Required, once) RDP password
+gnome_remote_desktop_rdp_password: ""
+
+# (Optional) Suffix to append after {{ ansible_fqdn }} in the CN of the TLS certificate
+gnome_remote_desktop_fqdn_suffix: ""
+
+# (Optional, detail) directory where to store TLS certificate for RDP
+gnome_remote_desktop_rdp_tls_path: /var/lib/gnome-remote-desktop
+# (Optional, detail) file name stem of TLS certificate for RDP
+gnome_remote_desktop_rdp_tls_file_name: rdp-tls

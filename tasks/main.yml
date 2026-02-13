@@ -1,0 +1,5 @@
+---
+- name: Setup system-wide GNOME Remote Desktop with RDP
+  when: gnome_remote_desktop_rdp_enabled
+  ansible.builtin.include_tasks:
+    file: rdp.yml

@@ -1,0 +1,26 @@
+---
+galaxy_info:
+  role_name: gnome_remote_desktop
+  namespace: fnndsc
+  description: Setup gnome-remote-desktop
+
+  author: Jennings Zhang
+  company: Fetal-Neonatal Neuroimaging Developmental Science Center
+  license: MIT
+
+  min_ansible_version: "2.9"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble
+
+  galaxy_tags:
+    - gnome
+    - desktop
+    - rdp
+    - wfh
+    - remote
+    - access
+
+dependencies: []
