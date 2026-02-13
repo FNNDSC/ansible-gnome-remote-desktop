@@ -21,6 +21,8 @@ the option in "Settings" (a.k.a. `gnome-control-center`).
 The prior art to `gnome-remote-desktop` include [TurboVNC](https://turbovnc.org/)
 and [TigerVNC](https://tigervnc.org/). Those are not integrated with GNOME,
 hence they are more complicated to set up while also being more flexible.
+There is also [xrdp](https://www.xrdp.org/) (which does not support Wayland)
+and companies offering commercial solutions such as [RustDesk](https://rustdesk.com/).
 
 ## Role Variables
 
