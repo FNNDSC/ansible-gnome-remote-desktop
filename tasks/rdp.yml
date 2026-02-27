@@ -1,10 +1,4 @@
 ---
-- name: Check unsupported distro
-  when:
-    - ansible_distribution != "Ubuntu"
-    - ansible_distribution_version != "24.04"
-  ansible.builtin.fail:
-    msg: "Unsupported distro: {{ ansible_distribution }} (only Ubuntu 24.04 is supported)"
 - name: Check display manager configuration
   block:
     - name: Read /etc/X11/default-display-manager
@@ -20,9 +14,8 @@
 
 - name: Install gnome-remote-desktop
   ansible.builtin.apt:
-    name: gnome-remote-desktop
+    name: "{{ gnome_remote_desktop_package }}"
     state: present
-    cache_valid_time: 604800 # 1 week
   notify: Restart gnome-remote-desktop.service
 
 - name: Configure RDP TLS
@@ -48,26 +41,26 @@
         grd_should_generate_tls: "{{ not file_is_valid or not cn_is_correct }}"
       vars:
         file_is_valid: "{{ grd_tls_preexisting_openssl.rc == 0 }}"
-        cn_is_correct: "{{ grd_tls_preexisting_openssl.stdout.find(' = ' ~ ansible_fqdn ~ gnome_remote_desktop_fqdn_suffix) > 0 }}"
+        cn_is_correct: "{{ grd_tls_preexisting_openssl.stdout.find(' = ' ~ gnome_remote_desktop_rdp_tls_cn) > 0 }}"
     - name: Generate TLS certificates
       when: grd_should_generate_tls
       block:
         - name: Install winpr-utils
           ansible.builtin.apt:
-            name: winpr-utils
+            name: "{{ gnome_remote_desktop_winpr_utils_package }}"
             state: present
         - name: Run winpr-makecert
           become: true
           become_user: gnome-remote-desktop
           ansible.builtin.command:
             argv:
-              - winpr-makecert
+              - "{{ gnome_remote_desktop_winpr_makecert_command }}"
               - -rdp
               - -n
-              - "{{ ansible_fqdn }}{{ gnome_remote_desktop_fqdn_suffix }}"
+              - "{{ gnome_remote_desktop_rdp_tls_cn }}"
               - -path
-              - /var/lib/gnome-remote-desktop
-              - rdp-tls
+              - "{{ gnome_remote_desktop_rdp_tls_path }}"
+              - "{{ gnome_remote_desktop_rdp_tls_file_name }}"
           changed_when: true
           notify: Restart gnome-remote-desktop.service
 

@@ -8,10 +8,33 @@ gnome_remote_desktop_rdp_username: ""
 # (Required, once) RDP password
 gnome_remote_desktop_rdp_password: ""
 
-# (Optional) Suffix to append after {{ ansible_fqdn }} in the CN of the TLS certificate
-gnome_remote_desktop_fqdn_suffix: ""
 
-# (Optional, detail) directory where to store TLS certificate for RDP
+# Below this line are variable definitions for detailed configuration.
+# Usually there is no reason to read on or change their values.
+#####################################################################
+
+# Name of package which provides gnome-remote-desktop (minimum version 48)
+gnome_remote_desktop_package: "gnome-remote-desktop>=46"
+
+# TLS certificate CN (common name) value
+gnome_remote_desktop_rdp_tls_cn: "{{ ansible_fqdn }}"
+
+# Name of package which provides the `winpr-makecert` command
+gnome_remote_desktop_winpr_utils_package: >-
+  {{
+    (ansible_distribution == "Ubuntu")
+    | ternary("winpr-utils", "winpr3-utils")
+  }}
+
+# Name of the `winpr-makecert` command provided by the winpr-utils package
+gnome_remote_desktop_winpr_makecert_command: >-
+  {{
+    (ansible_distribution == "Ubuntu")
+    | ternary("winpr-makecert", "winpr-makecert3")
+  }}
+
+# Directory where to store TLS certificate for RDP
 gnome_remote_desktop_rdp_tls_path: /var/lib/gnome-remote-desktop
-# (Optional, detail) file name stem of TLS certificate for RDP
+# File name stem of TLS certificate for RDP
 gnome_remote_desktop_rdp_tls_file_name: rdp-tls
+
