@@ -67,3 +67,6 @@ Or straight up reboot.
   generates the TLS certificates for them ([source](https://gitlab.gnome.org/GNOME/gnome-control-center/-/blob/5c7f48eccc1df6e798194e6f69f05a95c980ca6b/panels/system/remote-desktop/cc-desktop-sharing-page.c#L203)).
   However when setting up system-level RDP using `grdctl --system rdp enable`,
   these certificates must be generated manually using `winpr-makecert`
+- When system-level RDP is enabled in GNOME Settings version 48, it creates the certificates
+  at `/var/lib/gnome-remote-desktop/.local/share/gnome-remote-desktop/certificates/rdp-tls.{crt,key}`
+  with `subject=/CN=GNOME/C=US`
