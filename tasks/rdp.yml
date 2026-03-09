@@ -12,6 +12,21 @@
       vars:
         display_manager_bin: "{{ (grd_default_display_manager.content | b64decode).strip() }}"
 
+- name: Check that NetworkManager is being used
+  block:
+    - name: Get nmcli devices
+      ansible.builtin.command:
+        argv: ['nmcli', '--get-values', 'device,state', 'device']
+      register: gnome_remote_desktop_rdp_nmcli_d
+      changed_when: false
+    - name: Assert NIC is connected using NetworkManager
+      ansible.builtin.assert:
+        that: ansible_default_ipv4.interface ~ ':connected' in gnome_remote_desktop_rdp_nmcli_d.stdout_lines
+        fail_msg: >-
+          The device ansible_default_ipv4.interface={{ ansible_default_ipv4.interface }}
+          must be connected using NetworkManager for gnome-remote-desktop to work. See
+          https://gitlab.gnome.org/GNOME/gnome-remote-desktop/-/issues/285
+
 - name: Install gnome-remote-desktop
   ansible.builtin.apt:
     name: "{{ gnome_remote_desktop_package }}"
