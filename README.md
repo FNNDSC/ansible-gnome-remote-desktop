@@ -70,3 +70,5 @@ Or straight up reboot.
 - When system-level RDP is enabled in GNOME Settings version 48, it creates the certificates
   at `/var/lib/gnome-remote-desktop/.local/share/gnome-remote-desktop/certificates/rdp-tls.{crt,key}`
   with `subject=/CN=GNOME/C=US`
+- Upstream developers and packagers have decided that RDP is preferable over VNC.
+  https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1075863#25
